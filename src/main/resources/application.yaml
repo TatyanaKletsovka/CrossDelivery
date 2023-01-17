@@ -1,0 +1,15 @@
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+    generate-ddl: true
+    defer-datasource-initialization: true
+  datasource:
+    url: jdbc:mysql://${DB_URL}/${DB_NAME}?createDatabaseIfNotExist=true
+    username: ${DB_USER}
+    password: ${DB_PASS}
+    driver-class: com.cj.jdbc.Driver
+# context path config
+server:
+  servlet:
+    context-path: /api/v1
