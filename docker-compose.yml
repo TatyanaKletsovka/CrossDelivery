@@ -1,0 +1,13 @@
+version: '3.5'
+services:
+  database:
+    image: mysql:8.0
+    container_name: 'cross_delivery_db'
+    environment:
+      MYSQL_ROOT_PASSWORD: bakery
+      MYSQL_DATABASE: bakery
+  app:
+    build: ./
+    container_name: 'cross_delivery'
+    ports:
+      - "8080:8080"
