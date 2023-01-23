@@ -15,26 +15,24 @@ BASE_URL = "/api/v1"
 - String email
 - String password
 - String phoneNumber
-- Set\<Role> role
+- Role(enum) role
 - boolean isBlocked
 - LocalDateTime createdAt
 - LocalDateTime updatedAt
 - LocalDateTime disabledAt
-
-**Class Role**
-- Long id
-- RoleName roleName
 
 ### Dto
 
 **Class UserAdminViewDto**
 - Long id
 - String username
+- String firstName
+- String lastName
 - String email
-- List\<String> roles
+- String phoneNumber
+- Role role
 - boolean isBlocked
 - LocalDateTime createdAt
-- LocalDateTime disabledAt
 
 **Class UserDto**
 - Long id
@@ -49,10 +47,6 @@ BASE_URL = "/api/v1"
 - String email
 - String phoneNumber
 - LocalDateTime createdAt
-
-**Class RoleDto**
-- Long id
-- String name
 
 **Class UserFilterDto**
 - String username
@@ -76,15 +70,7 @@ BASE_URL = "/api/v1"
 
 **Interface UserRepository extends JpaRepository\<User, Long>, JpaSpecificationExecutor<User>**
 
-**Interface RoleRepository extends JpaRepository\<Role, Long>**
-
 ### Service
-
-**CLass RoleService**
-- UserDto addRole(Long userId, Long roleId)
-- UserDto removeRole(Long userId, Long roleId)
-- List\<RoleDto> getRoles()
-- RoleDto getRoleById()
 
 **CLass UserService**
 
@@ -103,16 +89,7 @@ BASE_URL = "/api/v1"
 - User convertToEntity(UserDto dto)
 - User convertToEntity(SignUpDto dto)
 
-- **Class RoleConverter**
-- RoleDto convertToDto(Role role)
-- Role convertToEntity(RoleDto roleDto)
-
 ### Controller
-
-**Class RoleController**
-- @PostMapping("/users/{id}/roles/{id}") UserDto addRoleToUser(@PathVariable Long roleId, @PathVariable Long userId)
-- @DeleteMapping("/users/{id}/roles/{id}") UserDto removeRoleFromUser(@PathVariable Long roleId, @PathVariable Long userId)
-- @GetMapping("/roles") List\<RoleDto> getRoles()
 
 **Class UserController**
 - @GetMapping("/users") List\<UserAdminViewDto> getAllUsers()
