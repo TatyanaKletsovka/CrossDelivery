@@ -1,12 +1,17 @@
 package com.syberry.crossdelivery.user.service.impl;
 
+import com.syberry.crossdelivery.exception.AccessException;
+import com.syberry.crossdelivery.exception.UpdateException;
 import com.syberry.crossdelivery.exception.ValidationException;
+import com.syberry.crossdelivery.user.converter.RoleConverter;
 import com.syberry.crossdelivery.user.converter.UserConverter;
 import com.syberry.crossdelivery.user.dto.SignUpDto;
+import com.syberry.crossdelivery.user.dto.UpdatePasswordDto;
 import com.syberry.crossdelivery.user.dto.UserAdminViewDto;
 import com.syberry.crossdelivery.user.dto.UserDto;
 import com.syberry.crossdelivery.user.dto.UserFilterDto;
 import com.syberry.crossdelivery.user.dto.UserWithAccessDto;
+import com.syberry.crossdelivery.user.entity.Role;
 import com.syberry.crossdelivery.user.entity.User;
 import com.syberry.crossdelivery.user.repository.UserRepository;
 import com.syberry.crossdelivery.user.service.UserService;
@@ -14,12 +19,17 @@ import com.syberry.crossdelivery.user.service.specification.UserSpecification;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
+
+import static com.syberry.crossdelivery.authorization.util.SecurityContextUtil.getUserDetails;
 
 @Service
 @RequiredArgsConstructor
@@ -27,49 +37,106 @@ public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
     private final UserConverter userConverter;
+    private final RoleConverter roleConverter;
     private final UserSpecification specification;
+    private final PasswordEncoder encoder;
 
     @Override
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public Page<UserAdminViewDto> getAllUsers(UserFilterDto filter, Pageable pageable) {
         return userRepository.findAll(specification.buildGetAllSpecification(filter), pageable)
                 .map(userConverter::convertToUserAdminViewDto);
     }
 
     @Override
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public UserDto getUserById(Long id) {
+        // After implementation order feature will be added logic of returning different User DTOs
         return userConverter.convertToDto(userRepository.findByIdIfExistsAndIsBlockedFalse(id));
     }
 
     @Override
-    public UserWithAccessDto createUser(SignUpDto dto) {
-//        password encoding will be implemented in feature 'Authentication and Authorization',
-//        because needed security dependency
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    public UserWithAccessDto getUserProfile() {
+        Long id = getUserDetails().getId();
+        return userConverter.convertToUserWithAccessDto(userRepository.findByIdIfExistsAndIsBlockedFalse(id));
+    }
+
+    @Override
+    public UserWithAccessDto createProfile(SignUpDto dto) {
         validateFields(dto.getUsername(), dto.getEmail(), null);
         User user = userConverter.convertToEntity(dto);
+        user.setPassword(encoder.encode(dto.getPassword()));
         return userConverter.convertToUserWithAccessDto(userRepository.save(user));
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public UserWithAccessDto updateProfile(UserWithAccessDto dto) {
-        validateFields(dto.getUsername(), dto.getEmail(), dto.getId());
-        User userDb = userRepository.findByIdIfExistsAndIsBlockedFalse(dto.getId());
+        Long id = getUserDetails().getId();
+        validateFields(dto.getUsername(), dto.getEmail(), id);
+        User userDb = userRepository.findByIdIfExistsAndIsBlockedFalse(id);
         User user = userConverter.convertToEntity(dto, userDb);
         return userConverter.convertToUserWithAccessDto(user);
     }
 
     @Override
     @Transactional
-    public void disableUserProfile(Long id) {
-        User user = userRepository.findByIdIfExistsAndIsBlockedFalse(id);
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    public void disableUserProfile() {
+        User user = userRepository.findByIdIfExistsAndIsBlockedFalse(getUserDetails().getId());
         user.setDisabledAt(LocalDateTime.now());
     }
 
     @Override
     @Transactional
+    @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
+    public void updatePassword(UpdatePasswordDto dto) {
+        User user = userRepository.findByIdIfExistsAndIsBlockedFalse(getUserDetails().getId());
+        if (!encoder.matches(dto.getCurrentPassword(), user.getPassword())) {
+            throw new UpdateException("Invalid current password");
+        }
+        user.setPassword(encoder.encode(dto.getNewPassword()));
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
     public UserAdminViewDto reverseIsBlocked(Long id) {
+        if (id.equals(getUserDetails().getId())) {
+            throw new AccessException("Blocking can't be changed in personal profile");
+        }
         User user = userRepository.findByIdIfExists(id);
         user.setBlocked(!user.isBlocked());
+        return userConverter.convertToUserAdminViewDto(user);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    public UserAdminViewDto addRoleToUser(Long id, String role) {
+        if (id.equals(getUserDetails().getId())) {
+            throw new AccessException("Role can't be added to personal profile");
+        }
+        User user = userRepository.findByIdIfExists(id);
+        user.getRoles().add(roleConverter.convertToRole(role));
+        return userConverter.convertToUserAdminViewDto(user);
+    }
+
+    @Override
+    @Transactional
+    @PreAuthorize("hasAnyAuthority('ADMIN')")
+    public UserAdminViewDto removeRoleFromUser(Long id, String role) {
+        if (id.equals(getUserDetails().getId())) {
+            throw new AccessException("Role can't be deleted from personal profile");
+        }
+        User user = userRepository.findByIdIfExists(id);
+        Set<Role> roles = user.getRoles();
+        if (roles.size() == 1) {
+            throw new UpdateException("Last role can't be deleted");
+        }
+        user.getRoles().remove(roleConverter.convertToRole(role));
         return userConverter.convertToUserAdminViewDto(user);
     }
 

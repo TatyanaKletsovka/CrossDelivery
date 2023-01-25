@@ -19,6 +19,7 @@ spring:
       pageable:
         default-page-size: 20
         max-page-size: 200
+
 # date format
   mvc:
     format:
@@ -28,3 +29,12 @@ spring:
 server:
   servlet:
     context-path: /api/v1
+cross-delivery:
+# security config
+  security:
+    jwtCookieName: accessToken
+    jwtRefreshCookieName: refreshToken
+    jwtSecret: ${JWT_SECRET}
+    jwtExpirationMs: 900000
+    jwtRefreshExpirationHr: 24
+    maxAgeSeconds: 86400

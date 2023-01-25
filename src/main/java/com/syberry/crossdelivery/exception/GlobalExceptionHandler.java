@@ -1,23 +1,16 @@
 package com.syberry.crossdelivery.exception;
 
-
-import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.server.ResponseStatusException;
 
-import javax.validation.ConstraintViolationException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler extends Exception {
@@ -35,9 +28,12 @@ public class GlobalExceptionHandler extends Exception {
     }
 
     @ExceptionHandler({
+            AccessException.class,
             EntityNotFoundException.class,
-            ValidationException.class,
-            InvalidArgumentTypeException.class
+            InvalidArgumentTypeException.class,
+            TokenRefreshException.class,
+            UpdateException.class,
+            ValidationException.class
     })
     public final ResponseEntity<Map<String, List<String>>> customExceptionHandler(Exception ex) {
         List<String> errors = Collections.singletonList(ex.getMessage());
@@ -54,6 +50,4 @@ public class GlobalExceptionHandler extends Exception {
         response.put("ValidationErrors", error);
         return new ResponseEntity<>(getErrorsMap(response), new HttpHeaders(), HttpStatus.BAD_REQUEST);
     }
-
 }
-

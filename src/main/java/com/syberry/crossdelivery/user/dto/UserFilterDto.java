@@ -1,6 +1,5 @@
 package com.syberry.crossdelivery.user.dto;
 
-import com.syberry.crossdelivery.user.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,9 +20,7 @@ public class UserFilterDto {
     private String lastName = "";
     private String email = "";
     private String phoneNumber = "";
-    private Role role;
     private Boolean isBlocked;
     private LocalDate createdAtStart = DEFAULT_START_DATE;
     private LocalDate createdAtEnd = DEFAULT_END_DATE;
-
 }

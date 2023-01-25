@@ -6,12 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
+import java.util.Set;
+
 @Data
 @SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserAdminViewDto extends UserWithAccessDto{
 
-    private Role role;
+    private Set<Role> roles;
     private boolean isBlocked;
 }
