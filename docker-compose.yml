@@ -4,8 +4,8 @@ services:
     image: mysql:8.0
     container_name: 'cross_delivery_db'
     environment:
-      MYSQL_ROOT_PASSWORD: bakery
-      MYSQL_DATABASE: bakery
+      MYSQL_ROOT_PASSWORD: cross_delivery
+      MYSQL_DATABASE: cross_delivery
   app:
     build: ./
     container_name: 'cross_delivery'

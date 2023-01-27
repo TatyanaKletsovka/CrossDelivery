@@ -16,12 +16,14 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 
 import java.time.LocalDateTime;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class UserConverterTest {
+
     @InjectMocks
     UserConverter userConverter;
     User user = new User();
@@ -45,7 +47,7 @@ public class UserConverterTest {
         user.setEmail(email);
         user.setPassword(password);
         user.setPhoneNumber(phone);
-        user.setRole(Role.ADMIN);
+        user.setRoles(Set.of(Role.ADMIN));
         user.setBlocked(false);
         user.setCreatedAt(LocalDateTime.now());
 
@@ -90,7 +92,6 @@ public class UserConverterTest {
     @Test
     public void should_SuccessfullyConvertToUserAdminViewDto() {
         UserAdminViewDto dto = userConverter.convertToUserAdminViewDto(user);
-        assertEquals(dto.getRole(), Role.ADMIN);
+        assertEquals(dto.getRoles(), Set.of(Role.ADMIN));
     }
 }
-

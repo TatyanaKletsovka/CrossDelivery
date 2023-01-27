@@ -1,9 +1,8 @@
 package com.syberry.crossdelivery.user.service.specification;
 
-import com.syberry.crossdelivery.user.entity.Role;
-import com.syberry.crossdelivery.user.entity.User_;
 import com.syberry.crossdelivery.user.dto.UserFilterDto;
 import com.syberry.crossdelivery.user.entity.User;
+import com.syberry.crossdelivery.user.entity.User_;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 
@@ -20,7 +19,6 @@ public class UserSpecification {
                 .and(buildLastNameLikeSpecification(filter.getLastName()))
                 .and(buildEmailLikeSpecification(filter.getEmail()))
                 .and(buildPhoneNumberLikeSpecification(filter.getPhoneNumber()))
-                .and(buildWhereRoleIsSpecification(filter.getRole()))
                 .and(buildWhereIsBlockedIsSpecification(filter.getIsBlocked()))
                 .and(buildCreatedAtBetweenSpecification(filter.getCreatedAtStart().atStartOfDay(),
                         filter.getCreatedAtEnd().plusDays(1).atStartOfDay()));
@@ -67,12 +65,6 @@ public class UserSpecification {
                         root.get(User_.PHONE_NUMBER), "%" + phoneNumber + "%");
     }
 
-    private Specification<User> buildWhereRoleIsSpecification(Role role) {
-        return (root, query, criteriaBuilder) -> role != null
-                ? criteriaBuilder.equal(root.get(User_.ROLE), role)
-                : null;
-    }
-
     public Specification<User> buildWhereIsBlockedIsSpecification(Boolean isBlocked) {
         return (root, query, criteriaBuilder) -> isBlocked != null
                 ? criteriaBuilder.equal(root.get(User_.IS_BLOCKED), isBlocked)
@@ -84,5 +76,4 @@ public class UserSpecification {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.between(root.get(User_.CREATED_AT), createdAtStart, createdAtEnd);
     }
-
 }

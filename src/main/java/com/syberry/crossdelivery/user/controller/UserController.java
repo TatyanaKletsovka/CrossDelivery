@@ -1,6 +1,7 @@
 package com.syberry.crossdelivery.user.controller;
 
 import com.syberry.crossdelivery.user.dto.SignUpDto;
+import com.syberry.crossdelivery.user.dto.UpdatePasswordDto;
 import com.syberry.crossdelivery.user.dto.UserAdminViewDto;
 import com.syberry.crossdelivery.user.dto.UserDto;
 import com.syberry.crossdelivery.user.dto.UserFilterDto;
@@ -19,10 +20,12 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 @RestController
 @Validated
@@ -41,37 +44,59 @@ public class UserController {
 
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable("id") Long id) {
+        // After implementation order feature will be added logic of returning different User DTOs
         log.info("GET-request: getting user with id: {}", id);
         return userService.getUserById(id);
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserWithAccessDto createUser(@Valid @RequestBody SignUpDto signUpDto) {
-        log.info("POST-request: creating user");
-        return userService.createUser(signUpDto);
+    @GetMapping("/profile")
+    public UserWithAccessDto getUserProfile() {
+        log.info("GET-request: getting user profile");
+        return userService.getUserProfile();
     }
 
-    @PutMapping("/{id}")
-    public UserWithAccessDto updateProfile(@PathVariable("id") Long id,
-                                           @Valid @RequestBody UserWithAccessDto userWithAccessDto) {
+    @PostMapping("/sign-up")
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserWithAccessDto createProfile(@Valid @RequestBody SignUpDto signUpDto) {
+        log.info("POST-request: creating user profile");
+        return userService.createProfile(signUpDto);
+    }
+
+    @PutMapping
+    public UserWithAccessDto updateProfile(@Valid @RequestBody UserWithAccessDto userWithAccessDto) {
         log.info("PUT-request: updating user profile");
-//      The id will be taken out of the context after adding the authorization
-        userWithAccessDto.setId(id);
         return userService.updateProfile(userWithAccessDto);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void disableProfile(@PathVariable("id") Long id) {
-        log.info("DELETE-request: deleting user profile with id: {}", id);
-//      The id will be taken out of the context after adding the authorization
-        userService.disableUserProfile(id);
+    public void disableProfile() {
+        log.info("DELETE-request: deleting user profile");
+        userService.disableUserProfile();
+    }
+
+    @PutMapping("/update-password")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void updatePassword(@Valid @RequestBody UpdatePasswordDto updatePasswordDto) {
+        log.info("POST-request: update password");
+        userService.updatePassword(updatePasswordDto);
     }
 
     @PutMapping("/blocked/{id}")
     public UserAdminViewDto reverseIsBlockedUserById(@PathVariable("id") Long id) {
+        log.info("PUT-request: reverse the user's with id: {} blocked status", id);
         return userService.reverseIsBlocked(id);
     }
 
+    @PutMapping("/{id}/add-role")
+    public UserAdminViewDto addRoleToUser(@PathVariable("id") Long id, @NotNull @RequestParam String role) {
+        log.info("PUT-request: add role: {} to user with id: {}", role, id);
+        return userService.addRoleToUser(id, role);
+    }
+
+    @PutMapping("/{id}/remove-role")
+    public UserAdminViewDto removeRoleFromUser(@PathVariable("id") Long id, @NotNull @RequestParam String role) {
+        log.info("PUT-request: remove role: {} from user with id: {}", role, id);
+        return userService.removeRoleFromUser(id, role);
+    }
 }

@@ -15,6 +15,9 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
 
     Optional<User> findByIdAndIsBlockedFalseAndDisabledAtNull(Long id);
 
+    Optional<User> findByEmailAndIsBlockedFalseAndDisabledAtNull(String username);
+
+
     Optional<User> findByIdAndDisabledAtNull(Long id);
 
     default User findByIdIfExistsAndIsBlockedFalse(Long id) {
@@ -27,4 +30,8 @@ public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificat
                 -> new EntityNotFoundException(String.format("User with id: %s is not found", id)));
     }
 
+    default User findByEmailIfExistsAndIsBlockedFalse(String email) {
+        return findByEmailAndIsBlockedFalseAndDisabledAtNull(email).orElseThrow(()
+                -> new EntityNotFoundException(String.format("User with email: %s is not found", email)));
+    }
 }
