@@ -37,14 +37,13 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping
-    Page<UserAdminViewDto> getAllUsers(UserFilterDto filter, Pageable pageable) {
+    public Page<UserAdminViewDto> getAllUsers(UserFilterDto filter, Pageable pageable) {
         log.info("GET-request: getting all users");
         return userService.getAllUsers(filter, pageable);
     }
 
     @GetMapping("/{id}")
     public UserDto getUserById(@PathVariable("id") Long id) {
-        // After implementation order feature will be added logic of returning different User DTOs
         log.info("GET-request: getting user with id: {}", id);
         return userService.getUserById(id);
     }
@@ -83,9 +82,9 @@ public class UserController {
     }
 
     @PutMapping("/blocked/{id}")
-    public UserAdminViewDto reverseIsBlockedUserById(@PathVariable("id") Long id) {
+    public UserAdminViewDto reverseBlockedUserById(@PathVariable("id") Long id) {
         log.info("PUT-request: reverse the user's with id: {} blocked status", id);
-        return userService.reverseIsBlocked(id);
+        return userService.reverseBlocked(id);
     }
 
     @PutMapping("/{id}/add-role")

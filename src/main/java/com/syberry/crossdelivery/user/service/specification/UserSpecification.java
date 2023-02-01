@@ -19,7 +19,7 @@ public class UserSpecification {
                 .and(buildLastNameLikeSpecification(filter.getLastName()))
                 .and(buildEmailLikeSpecification(filter.getEmail()))
                 .and(buildPhoneNumberLikeSpecification(filter.getPhoneNumber()))
-                .and(buildWhereIsBlockedIsSpecification(filter.getIsBlocked()))
+                .and(buildWhereBlockedIsSpecification(filter.getBlocked()))
                 .and(buildCreatedAtBetweenSpecification(filter.getCreatedAtStart().atStartOfDay(),
                         filter.getCreatedAtEnd().plusDays(1).atStartOfDay()));
     }
@@ -65,9 +65,9 @@ public class UserSpecification {
                         root.get(User_.PHONE_NUMBER), "%" + phoneNumber + "%");
     }
 
-    public Specification<User> buildWhereIsBlockedIsSpecification(Boolean isBlocked) {
-        return (root, query, criteriaBuilder) -> isBlocked != null
-                ? criteriaBuilder.equal(root.get(User_.IS_BLOCKED), isBlocked)
+    public Specification<User> buildWhereBlockedIsSpecification(Boolean blocked) {
+        return (root, query, criteriaBuilder) -> blocked != null
+                ? criteriaBuilder.equal(root.get(User_.BLOCKED), blocked)
                 : null;
     }
 

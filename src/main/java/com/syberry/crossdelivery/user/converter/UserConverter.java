@@ -4,12 +4,9 @@ import com.syberry.crossdelivery.user.dto.SignUpDto;
 import com.syberry.crossdelivery.user.dto.UserAdminViewDto;
 import com.syberry.crossdelivery.user.dto.UserDto;
 import com.syberry.crossdelivery.user.dto.UserWithAccessDto;
-import com.syberry.crossdelivery.user.entity.Role;
 import com.syberry.crossdelivery.user.entity.User;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 @Component
 @RequiredArgsConstructor
@@ -23,7 +20,6 @@ public class UserConverter {
         user.setEmail(dto.getEmail());
         user.setPassword(dto.getPassword());
         user.setPhoneNumber(dto.getPhoneNumber());
-        user.setRoles(Set.of(Role.USER));
         return user;
     }
 
@@ -66,7 +62,7 @@ public class UserConverter {
                 .phoneNumber(user.getPhoneNumber())
                 .createdAt(user.getCreatedAt())
                 .roles(user.getRoles())
-                .isBlocked(user.isBlocked())
+                .blocked(user.isBlocked())
                 .build();
     }
 }

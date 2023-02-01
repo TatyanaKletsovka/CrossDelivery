@@ -1,9 +1,13 @@
 package com.syberry.crossdelivery.service;
 
+import com.syberry.crossdelivery.authorization.entity.RefreshToken;
+import com.syberry.crossdelivery.authorization.repository.RefreshTokenRepository;
 import com.syberry.crossdelivery.authorization.security.UserDetailsImpl;
 import com.syberry.crossdelivery.exception.EntityNotFoundException;
 import com.syberry.crossdelivery.exception.UpdateException;
 import com.syberry.crossdelivery.exception.ValidationException;
+import com.syberry.crossdelivery.order.repository.OrderRepository;
+import com.syberry.crossdelivery.order.service.specification.OrderSpecification;
 import com.syberry.crossdelivery.user.converter.RoleConverter;
 import com.syberry.crossdelivery.user.converter.UserConverter;
 import com.syberry.crossdelivery.user.dto.SignUpDto;
@@ -33,6 +37,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -47,6 +52,7 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 @MockitoSettings(strictness = Strictness.LENIENT)
 public class UserServiceTest {
+
     @InjectMocks
     private UserServiceImpl userService;
     @Mock
@@ -56,7 +62,13 @@ public class UserServiceTest {
     @Mock
     private UserRepository userRepository;
     @Mock
+    private RefreshTokenRepository tokenRepository;
+    @Mock
+    private OrderRepository orderRepository;
+    @Mock
     UserSpecification specification;
+    @Mock
+    OrderSpecification orderSpecification;
     @Mock
     private PasswordEncoder encoder;
 
@@ -73,7 +85,7 @@ public class UserServiceTest {
         when(securityContext.getAuthentication()).thenReturn(authentication);
         SecurityContextHolder.setContext(securityContext);
         when(authentication.getPrincipal())
-                .thenReturn(new UserDetailsImpl(2L, null, "user@gmail.com",
+                .thenReturn(new UserDetailsImpl(2L, "user@gmail.com", "",
                         List.of(new SimpleGrantedAuthority(Role.ADMIN.name()))));
         when(roleConverter.convertToRole(any())).thenReturn(Role.USER);
     }
@@ -140,22 +152,23 @@ public class UserServiceTest {
 
     @Test
     void should_SuccessfullyGetUserById() {
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenReturn(user);
+        when(orderRepository.findAll(
+                orderSpecification.buildGetRelatedSpecification(1L, 2L))).thenReturn(new ArrayList<>());        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenReturn(user);
         when(userConverter.convertToDto(any())).thenReturn(userDto);
-        assertEquals(userService.getUserById(any()), userDto);
+        assertEquals(userService.getUserById(1L), userDto);
     }
 
     @Test
     void should_ThrowError_WhenGettingByIdNoneExistingUser() {
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(-1L)).thenThrow(EntityNotFoundException.class);
+        when(userRepository.findByIdIfExistsAndBlockedFalse(-1L)).thenThrow(EntityNotFoundException.class);
         assertThrows(EntityNotFoundException.class, () -> userService.getUserById(-1L));
     }
 
     @Test
     void should_SuccessfullyGetUserProfile() {
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenReturn(user);
-        when(userConverter.convertToDto(any())).thenReturn(userDto);
-        assertEquals(userService.getUserById(any()), userDto);
+        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenReturn(user);
+        when(userConverter.convertToUserWithAccessDto(any())).thenReturn(withAccessDto);
+        assertEquals(userService.getUserProfile(), withAccessDto);
     }
 
     @Test
@@ -186,7 +199,7 @@ public class UserServiceTest {
     void should_SuccessfullyUpdateProfile() {
         when(userRepository.findByUsername(any())).thenReturn(Optional.empty());
         when(userRepository.findByEmail(any())).thenReturn(Optional.empty());
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenReturn(new User());
+        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenReturn(new User());
         when(userConverter.convertToEntity(any(), any())).thenReturn(user);
         when(userConverter.convertToUserWithAccessDto(any())).thenReturn(withAccessDto);
         assertEquals(userService.updateProfile(withAccessDto), withAccessDto);
@@ -207,14 +220,17 @@ public class UserServiceTest {
 
     @Test
     void should_SuccessfullyDisableUser() {
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenReturn(user);
+        RefreshToken refreshToken = new RefreshToken();
+        refreshToken.setId(1L);
+        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenReturn(user);
+        when(tokenRepository.findByUserIdIfExists(any())).thenReturn(refreshToken);
         userService.disableUserProfile();
         assertNull(userService.getUserProfile());
     }
 
     @Test
     void should_SuccessfullyUpdatePassword() {
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenReturn(user);
+        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenReturn(user);
         when(encoder.matches(any(), any())).thenReturn(true);
         when(encoder.encode(any())).thenReturn("newPassword");
         userService.updatePassword(new UpdatePasswordDto("password", "newPassword"));
@@ -223,16 +239,16 @@ public class UserServiceTest {
 
     @Test
     void should_ThrowError_When_UpdatingPasswordWithInvalidPassword() {
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenReturn(user);
+        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenReturn(user);
         when(encoder.matches(any(), any())).thenReturn(false);
         assertThrows(UpdateException.class, () -> userService.updatePassword(
                 new UpdatePasswordDto("password", "newPassword")));
     }
 
     @Test
-    void should_SuccessfullyReverseIsBlockedUser() {
+    void should_SuccessfullyReverseUserBlocked() {
         when(userRepository.findByIdIfExists(any())).thenReturn(user);
         when(userConverter.convertToUserAdminViewDto(any())).thenReturn(adminViewDto);
-        assertEquals(userService.reverseIsBlocked(1L), adminViewDto);
+        assertEquals(userService.reverseBlocked(1L), adminViewDto);
     }
 }

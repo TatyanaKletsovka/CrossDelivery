@@ -72,7 +72,7 @@ public class AuthServiceTest {
         ResponseCookie refreshJwtCookie = ResponseCookie
                 .from("refresh-token", "refresh-token").build();
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenReturn(new User());
+        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenReturn(new User());
         when(userConverter.convertToDto(any(User.class))).thenReturn(new UserWithAccessDto());
         assertEquals(authService.login(new LoginRequestDto("user@gmail.com", "password")),
                 new LoginDto(jwtCookie.toString(), refreshJwtCookie.toString(), null));
@@ -81,7 +81,7 @@ public class AuthServiceTest {
     @Test
     void should_ThrowError_When_SigningInWithNoneExistingEmail() {
         when(authenticationManager.authenticate(any())).thenReturn(authentication);
-        when(userRepository.findByIdIfExistsAndIsBlockedFalse(any())).thenThrow(EntityNotFoundException.class);
+        when(userRepository.findByIdIfExistsAndBlockedFalse(any())).thenThrow(EntityNotFoundException.class);
         assertThrows(EntityNotFoundException.class, ()
                 -> authService.login(new LoginRequestDto("user@gmail.com", "password")));
     }

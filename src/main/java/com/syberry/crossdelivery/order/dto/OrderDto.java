@@ -1,21 +1,22 @@
-package com.syberry.crossdelivery.user.dto;
+package com.syberry.crossdelivery.order.dto;
 
-import com.syberry.crossdelivery.user.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
 
-import java.util.Set;
+import javax.validation.constraints.NotBlank;
 
+@SuperBuilder
 @Getter
 @Setter
-@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserAdminViewDto extends UserWithAccessDto{
+public class OrderDto extends OrderShortViewDto {
 
-    private Set<Role> roles;
+    private Long ownerId;
+    @NotBlank
+    private String description;
     private boolean blocked;
 }

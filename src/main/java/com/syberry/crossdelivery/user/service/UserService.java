@@ -25,7 +25,7 @@ public interface UserService {
 
     void updatePassword(UpdatePasswordDto dto);
 
-    UserAdminViewDto reverseIsBlocked(Long id);
+    UserAdminViewDto reverseBlocked(Long id);
 
     UserAdminViewDto addRoleToUser(Long id, String role);
 
