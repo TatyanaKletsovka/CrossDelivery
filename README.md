@@ -1,16 +1,24 @@
 # Cross-Delivery
 
-## Starting app
-1.Build application
+## Get application from git
 
-> ./mvnw package
+1.Open Git Bash
 
-2.Build application image
+2.Clone application
 
-> docker-compose up -d --build
+> git clone git@git.syberry.com:t.kletsovka/aqua-playground.git
 
-## Stopping app
+## Run application with maven
+1.Go to application folder
 
-1.At the end of the test
+> cd aqua-playground
 
-> docker-compose stop
+1.1.If necessary put in `src/main/resources/application.yaml` your `DB_USER` and `DB_PASS`
+
+2.Build application
+
+> mvn package
+
+3.Run application
+
+> java -jar target/cross-delivery-0.0.1-SNAPSHOT.jar
