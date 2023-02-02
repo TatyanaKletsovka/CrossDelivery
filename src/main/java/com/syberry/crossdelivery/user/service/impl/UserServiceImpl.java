@@ -1,8 +1,12 @@
 package com.syberry.crossdelivery.user.service.impl;
 
+import com.syberry.crossdelivery.authorization.repository.RefreshTokenRepository;
 import com.syberry.crossdelivery.exception.AccessException;
 import com.syberry.crossdelivery.exception.UpdateException;
 import com.syberry.crossdelivery.exception.ValidationException;
+import com.syberry.crossdelivery.order.entity.Order;
+import com.syberry.crossdelivery.order.repository.OrderRepository;
+import com.syberry.crossdelivery.order.service.specification.OrderSpecification;
 import com.syberry.crossdelivery.user.converter.RoleConverter;
 import com.syberry.crossdelivery.user.converter.UserConverter;
 import com.syberry.crossdelivery.user.dto.SignUpDto;
@@ -25,6 +29,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -36,30 +41,38 @@ import static com.syberry.crossdelivery.authorization.util.SecurityContextUtil.g
 public class UserServiceImpl implements UserService {
 
     private final UserRepository userRepository;
+    private final RefreshTokenRepository tokenRepository;
+    private final OrderRepository orderRepository;
     private final UserConverter userConverter;
     private final RoleConverter roleConverter;
-    private final UserSpecification specification;
+    private final UserSpecification userSpecification;
+    private final OrderSpecification orderSpecification;
     private final PasswordEncoder encoder;
 
     @Override
     @PreAuthorize("hasAnyAuthority('ADMIN')")
     public Page<UserAdminViewDto> getAllUsers(UserFilterDto filter, Pageable pageable) {
-        return userRepository.findAll(specification.buildGetAllSpecification(filter), pageable)
+        return userRepository.findAll(userSpecification.buildGetAllSpecification(filter), pageable)
                 .map(userConverter::convertToUserAdminViewDto);
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public UserDto getUserById(Long id) {
-        // After implementation order feature will be added logic of returning different User DTOs
-        return userConverter.convertToDto(userRepository.findByIdIfExistsAndIsBlockedFalse(id));
+        List<Order> orders = orderRepository.findAll(
+                orderSpecification.buildGetRelatedSpecification(id, getUserDetails().getId()));
+        if (!orders.isEmpty() || id.equals(getUserDetails().getId())) {
+            return userConverter.convertToUserWithAccessDto(userRepository.findByIdIfExistsAndBlockedFalse(id));
+        } else {
+            return userConverter.convertToDto(userRepository.findByIdIfExistsAndBlockedFalse(id));
+        }
     }
 
     @Override
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public UserWithAccessDto getUserProfile() {
         Long id = getUserDetails().getId();
-        return userConverter.convertToUserWithAccessDto(userRepository.findByIdIfExistsAndIsBlockedFalse(id));
+        return userConverter.convertToUserWithAccessDto(userRepository.findByIdIfExistsAndBlockedFalse(id));
     }
 
     @Override
@@ -76,7 +89,7 @@ public class UserServiceImpl implements UserService {
     public UserWithAccessDto updateProfile(UserWithAccessDto dto) {
         Long id = getUserDetails().getId();
         validateFields(dto.getUsername(), dto.getEmail(), id);
-        User userDb = userRepository.findByIdIfExistsAndIsBlockedFalse(id);
+        User userDb = userRepository.findByIdIfExistsAndBlockedFalse(id);
         User user = userConverter.convertToEntity(dto, userDb);
         return userConverter.convertToUserWithAccessDto(user);
     }
@@ -85,15 +98,17 @@ public class UserServiceImpl implements UserService {
     @Transactional
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public void disableUserProfile() {
-        User user = userRepository.findByIdIfExistsAndIsBlockedFalse(getUserDetails().getId());
+        Long id = getUserDetails().getId();
+        User user = userRepository.findByIdIfExistsAndBlockedFalse(id);
         user.setDisabledAt(LocalDateTime.now());
+        tokenRepository.deleteById(tokenRepository.findByUserIdIfExists(id).getId());
     }
 
     @Override
     @Transactional
     @PreAuthorize("hasAnyAuthority('ADMIN', 'USER')")
     public void updatePassword(UpdatePasswordDto dto) {
-        User user = userRepository.findByIdIfExistsAndIsBlockedFalse(getUserDetails().getId());
+        User user = userRepository.findByIdIfExistsAndBlockedFalse(getUserDetails().getId());
         if (!encoder.matches(dto.getCurrentPassword(), user.getPassword())) {
             throw new UpdateException("Invalid current password");
         }
@@ -103,7 +118,7 @@ public class UserServiceImpl implements UserService {
     @Override
     @Transactional
     @PreAuthorize("hasAnyAuthority('ADMIN')")
-    public UserAdminViewDto reverseIsBlocked(Long id) {
+    public UserAdminViewDto reverseBlocked(Long id) {
         if (id.equals(getUserDetails().getId())) {
             throw new AccessException("Blocking can't be changed in personal profile");
         }

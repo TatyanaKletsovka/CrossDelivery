@@ -4,6 +4,9 @@ spring:
       ddl-auto: update
     generate-ddl: true
     defer-datasource-initialization: true
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
   datasource:
     url: jdbc:mysql://${DB_URL}/${DB_NAME}?createDatabaseIfNotExist=true
     username: ${DB_USER}

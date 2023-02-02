@@ -20,7 +20,7 @@ public class UserFilterDto {
     private String lastName = "";
     private String email = "";
     private String phoneNumber = "";
-    private Boolean isBlocked;
+    private Boolean blocked;
     private LocalDate createdAtStart = DEFAULT_START_DATE;
     private LocalDate createdAtEnd = DEFAULT_END_DATE;
 }

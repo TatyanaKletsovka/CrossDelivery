@@ -12,7 +12,8 @@ public class RoleConverter {
             return Role.valueOf(role.toUpperCase());
         } catch (IllegalArgumentException e) {
             throw new InvalidArgumentTypeException(
-                    String.format("Error while converting invalid role: %s. Valid roles: ADMIN, USER", role));
+                    String.format("Error while converting invalid role: %s. Valid roles: %s",
+                            role, Role.getNames()));
         }
     }
 }

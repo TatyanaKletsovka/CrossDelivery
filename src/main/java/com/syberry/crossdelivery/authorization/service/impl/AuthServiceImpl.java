@@ -8,11 +8,8 @@ import com.syberry.crossdelivery.authorization.service.AuthService;
 import com.syberry.crossdelivery.authorization.service.RefreshTokenService;
 import com.syberry.crossdelivery.authorization.util.JwtUtils;
 import com.syberry.crossdelivery.exception.TokenRefreshException;
-import com.syberry.crossdelivery.exception.UpdateException;
 import com.syberry.crossdelivery.user.converter.UserConverter;
-import com.syberry.crossdelivery.user.dto.UpdatePasswordDto;
 import com.syberry.crossdelivery.user.dto.UserWithAccessDto;
-import com.syberry.crossdelivery.user.entity.User;
 import com.syberry.crossdelivery.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseCookie;
@@ -23,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -77,6 +73,6 @@ public class AuthServiceImpl implements AuthService {
     }
 
     private UserWithAccessDto getUserById(Long id) {
-        return userConverter.convertToUserWithAccessDto(userRepository.findByIdIfExistsAndIsBlockedFalse(id));
+        return userConverter.convertToUserWithAccessDto(userRepository.findByIdIfExistsAndBlockedFalse(id));
     }
 }

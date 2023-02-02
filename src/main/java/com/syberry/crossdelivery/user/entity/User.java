@@ -1,8 +1,9 @@
 package com.syberry.crossdelivery.user.entity;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.CollectionTable;
 import javax.persistence.Column;
@@ -24,7 +25,8 @@ import java.util.Set;
 
 @Entity
 @Table
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class User {
@@ -55,8 +57,9 @@ public class User {
             uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "role"}))
     @Enumerated(EnumType.STRING)
     @Column(name = "role")
-    private Set<Role> roles;
-    private boolean isBlocked = false;
+    private Set<Role> roles = Set.of(Role.USER);
+    private boolean blocked = false;
+    @NotNull
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime disabledAt;
 }

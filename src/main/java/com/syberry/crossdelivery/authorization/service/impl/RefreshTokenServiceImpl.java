@@ -32,18 +32,18 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Override
     @Transactional
     public RefreshToken createRefreshToken(Long userId) {
-        User user = userRepository.findByIdIfExistsAndIsBlockedFalse(userId);
+        User user = userRepository.findByIdIfExistsAndBlockedFalse(userId);
         Optional<RefreshToken> optionalRefreshToken = refreshTokenRepository.findByUserId(userId);
         RefreshToken refreshToken;
-        if (optionalRefreshToken.isPresent() && optionalRefreshToken.get().getExpiryDate().isAfter(Instant.now())) {
+        if (optionalRefreshToken.isPresent()) {
             refreshToken = optionalRefreshToken.get();
         } else {
             refreshToken = new RefreshToken();
             refreshToken.setUser(user);
-            refreshToken.setExpiryDate(Instant.now().plus(refreshTokenDurationHr, ChronoUnit.HOURS));
-            refreshToken.setToken(UUID.randomUUID().toString());
-            refreshTokenRepository.save(refreshToken);
         }
+        refreshToken.setExpiryDate(Instant.now().plus(refreshTokenDurationHr, ChronoUnit.HOURS));
+        refreshToken.setToken(UUID.randomUUID().toString());
+        refreshTokenRepository.save(refreshToken);
         return refreshToken;
     }
 
@@ -70,7 +70,7 @@ public class RefreshTokenServiceImpl implements RefreshTokenService {
     @Transactional
     public void deleteByUserId(Long userId) {
         try {
-            userRepository.findByIdIfExistsAndIsBlockedFalse(userId);
+            userRepository.findByIdIfExistsAndBlockedFalse(userId);
             refreshTokenRepository.deleteByUserId(userId);
         } catch (Exception e) {
             throw new RuntimeException(e);
