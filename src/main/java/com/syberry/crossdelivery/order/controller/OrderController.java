@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpStatus;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.validation.Valid;
@@ -50,7 +52,7 @@ public class OrderController {
     }
 
     @GetMapping("/performs")
-    public Page<OrderPersonalViewDto> getAuthorisedUserOrders(OrderFilterDto filter, Pageable pageable) {
+    public Page<OrderPersonalViewDto> getAuthorisedUserPerformOrders(OrderFilterDto filter, Pageable pageable) {
         log.info("GET-request: getting authorised user perform orders");
         return orderService.getAuthorisedUserPerformOrders(filter, pageable);
     }
@@ -62,6 +64,7 @@ public class OrderController {
     }
 
     @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public OrderDto createOrder(@Valid @RequestBody OrderDto dto) {
         log.info("POST-request: creating order");
         return orderService.createOrder(dto);
@@ -75,6 +78,7 @@ public class OrderController {
     }
 
     @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     void deleteOrderById(@PathVariable("id") Long id) {
         log.info("DELETE-request: deleting order with id: {}", id);
         orderService.deleteOrderById(id);

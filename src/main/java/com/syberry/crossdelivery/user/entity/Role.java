@@ -1,7 +1,5 @@
 package com.syberry.crossdelivery.user.entity;
 
-import com.syberry.crossdelivery.order.entity.Status;
-
 import java.util.Arrays;
 import java.util.stream.Collectors;
 

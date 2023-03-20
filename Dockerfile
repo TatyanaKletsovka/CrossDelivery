@@ -5,5 +5,5 @@ WORKDIR /build/
 RUN mvn clean package
 FROM openjdk:17
 WORKDIR /app
-COPY --from=MAVEN_BUILD /build/target/cross_delivery-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY --from=MAVEN_BUILD /build/target/cross-delivery-0.0.1-SNAPSHOT.jar /app/app.jar
 CMD ["java", "-jar", "app.jar"]

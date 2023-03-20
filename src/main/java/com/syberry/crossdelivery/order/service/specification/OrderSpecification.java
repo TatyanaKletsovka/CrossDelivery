@@ -46,10 +46,8 @@ public class OrderSpecification {
     }
 
     public Specification<Order> buildGetRelatedSpecification(Long userId, Long ownId) {
-        return (buildWhereOwnerIdIsSpecification(userId)
-                .and(buildWherePerformerIdIsSpecification(ownId)))
-                .or(buildWhereOwnerIdIsSpecification(ownId))
-                .and(buildWherePerformerIdIsSpecification(userId));
+        return buildGetRelatedIsOwnerSpecification(userId, ownId)
+                .or(buildGetRelatedIsPerformerSpecification(userId, ownId));
     }
 
     private Specification<Order> buildGetPersonalSpecification(OrderFilterDto filter) {
@@ -127,5 +125,15 @@ public class OrderSpecification {
     private Specification<Order> buildWherePerformerIdIsSpecification(Long performerId) {
         return (root, query, criteriaBuilder) ->
                 criteriaBuilder.equal(root.get(Order_.PERFORMER).get(User_.ID), performerId);
+    }
+
+    public Specification<Order> buildGetRelatedIsOwnerSpecification(Long userId, Long ownId) {
+        return buildWhereOwnerIdIsSpecification(ownId)
+                .and(buildWherePerformerIdIsSpecification(userId));
+    }
+
+    public Specification<Order> buildGetRelatedIsPerformerSpecification(Long userId, Long ownId) {
+        return buildWhereOwnerIdIsSpecification(userId)
+                .and(buildWherePerformerIdIsSpecification(ownId));
     }
 }
